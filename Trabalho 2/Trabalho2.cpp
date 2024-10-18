@@ -65,9 +65,9 @@ int altura_MaxHeap(TreeNo *T) {
 // Função para percorrer e imprimir o MaxHeap em ordem decrescente
 void imprime_MaxHeap(TreeNo *T) {
     if (T != NULL) {
-        imprime_MaxHeap(T->Rlink);
         cout << T->info << " ";
         imprime_MaxHeap(T->Llink);
+        imprime_MaxHeap(T->Rlink);
     }
 }
 
