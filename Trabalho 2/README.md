@@ -16,4 +16,5 @@ Este é um código em C++ é um trabalho para a matéria de AED2 onde devemos im
 **Colaboradores:**
 
 Trabalho realizado pelos alunos: Eduardo Larson e Thiago Ceron de Almeida
+
 GitHub: @edularson e @thiagoceron
