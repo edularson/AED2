@@ -1,212 +1,138 @@
 #include <iostream>
-#include <cstdlib>
-#include <queue>
+#include <algorithm>
+#include <cmath>
+
 using namespace std;
 
+// Definindo a constante para o tamanho máximo da heap
+const int MAX_tam = 100;  // Define o tamanho máximo da heap
+int heap[MAX_tam];         // Array que representa a heap
+int tam = 0;               // Variável que armazena o número atual de elementos na heap
 
 string arte_ascii1 = R"(
  /$$      /$$                     /$$   /$$                              
 | $$$    /$$$                    | $$  | $$                              
 | $$$$  /$$$$  /$$$$$$  /$$   /$$| $$  | $$  /$$$$$$   /$$$$$$   /$$$$$$ 
-| $$ $$/$$ $$ |____  $$|  $$ /$$/| $$$$$$$$ /$$__  $$ |____  $$ /$$__  $$
-| $$  $$$| $$  /$$$$$$$ \  $$$$/ | $$__  $$| $$$$$$$$  /$$$$$$$| $$  \ $$
-| $$\  $ | $$ /$$__  $$  >$$  $$ | $$  | $$| $$_____/ /$$__  $$| $$  | $$
-| $$ \/  | $$|  $$$$$$$ /$$/\  $$| $$  | $$|  $$$$$$$|  $$$$$$$| $$$$$$$/
-|__/     |__/ \_______/|__/  \__/|__/  |__/ \_______/ \_______/| $$____/ 
+| $$ $$/$$ $$ |____  $$|  $$ /$$/| $$$$$$$$ /$$__  $$ |____  $$ /$$__  $$ 
+| $$  $$$| $$  /$$$$$$$ \  $$$$/ | $$__  $$| $$$$$$$$  /$$$$$$$| $$  \ $$ 
+| $$\  $ | $$ /$$__  $$  >$$  $$ | $$  | $$| $$_____/ /$$__  $$| $$  | $$ 
+| $$ \/  | $$|  $$$$$$$ /$$/\  $$| $$  | $$|  $$$$$$$|  $$$$$$$| $$$$$$$/ 
+|__/     |__/ \_______/|__/  \__/|__/  |__/ \_______/ \_______/| $$____/  
                                                                | $$      
                                                                | $$      
                                                                |__/      
 )";
 
-// Estrutura para representar um nó da árvore
-struct TreeNo {
-    int info;              // Valor armazenado no nó
-    struct TreeNo *Llink;  // Ponteiro para o filho esquerdo
-    struct TreeNo *Rlink;  // Ponteiro para o filho direito
-};
+// Função recursiva para ajustar a posição de um elemento na heap para cima (max-heap)
+void ajusta_MaxHeap(int posicaoElemento) {
+    if (posicaoElemento == 0) return;  // Se o índice for 0, já é a raiz, então não precisa ajustar.
 
-// Protótipos das funções
-int altura_MaxHeap(TreeNo *T);
-void imprime_em_niveis(TreeNo *T);
-
-// Função para inicializar o MaxHeap
-// Retorna NULL para indicar uma árvore vazia
-TreeNo *ini_MaxHeap(TreeNo *T) {
-    return NULL;
-}
-
-// Função para trocar dois valores
-// Parâmetros:
-// - 'a' e 'b': referências aos inteiros a serem trocados
-void swap(int &a, int &b) {
-    int temp = a;
-    a = b;
-    b = temp;
-}
-
-// Função para inserir um novo elemento no MaxHeap e manter a propriedade do MaxHeap
-// Parâmetros:
-// - 'T': ponteiro para o nó raiz do MaxHeap
-// - 'x': valor a ser inserido no MaxHeap
-// Retorna o ponteiro atualizado do nó raiz
-TreeNo *insere_MaxHeap(TreeNo *T, int x) {
-    if (T == NULL) {
-        // Cria um novo nó se a árvore estiver vazia
-        T = (TreeNo *) malloc(sizeof(TreeNo));
-        T->info = x;
-        T->Llink = NULL;
-        T->Rlink = NULL;
-    } else {
-        // Insere o elemento na subárvore esquerda ou direita, mantendo o balanceamento
-        if (T->Llink == NULL) {
-            T->Llink = insere_MaxHeap(T->Llink, x);
-        } else if (T->Rlink == NULL) {
-            T->Rlink = insere_MaxHeap(T->Rlink, x);
-        } else {
-            // Insere na subárvore com menor altura
-            if (altura_MaxHeap(T->Llink) <= altura_MaxHeap(T->Rlink))
-                T->Llink = insere_MaxHeap(T->Llink, x);
-            else
-                T->Rlink = insere_MaxHeap(T->Rlink, x);
-        }
-        
-        // Ajusta a propriedade do MaxHeap
-        if (T->Llink != NULL && T->Llink->info > T->info)
-            swap(T->info, T->Llink->info);
-        if (T->Rlink != NULL && T->Rlink->info > T->info)
-            swap(T->info, T->Rlink->info);
-    }
-    return T;
-}
-
-// Função para obter a altura do MaxHeap
-// Parâmetro:
-// - 'T': ponteiro para o nó raiz
-// Retorna a altura da árvore
-int altura_MaxHeap(TreeNo *T) {
-    if (T == NULL) return 0;
-    int aL = altura_MaxHeap(T->Llink);
-    int aR = altura_MaxHeap(T->Rlink);
-    return max(aL, aR) + 1;
-}
-
-// Função para percorrer e imprimir o MaxHeap em ordem decrescente (pré-ordem)
-// Parâmetro:
-// - 'T': ponteiro para o nó raiz do MaxHeap
-void imprime_MaxHeap(TreeNo *T) {
-    if (T != NULL) {
-        cout << T->info << " ";
-        imprime_MaxHeap(T->Llink);
-        imprime_MaxHeap(T->Rlink);
+    int parent = (posicaoElemento - 1) / 2;  // Calcula o índice do pai do elemento.
+    if (heap[posicaoElemento] > heap[parent]) {  // Se o elemento for maior que seu pai, troca os valores.
+        swap(heap[posicaoElemento], heap[parent]);
+        ajusta_MaxHeap(parent);  // Chama recursivamente para garantir a propriedade de heap.
     }
 }
 
-// Função para remover o maior elemento (raiz) do MaxHeap
-// Parâmetro:
-// - 'T': ponteiro para o nó raiz do MaxHeap
-// Retorna o ponteiro atualizado do nó raiz após a remoção
-TreeNo *remove_MaxHeap(TreeNo *T) {
-    if (T == NULL)
-        return NULL;
-    
-    // Caso o nó não tenha filhos, libera a memória e retorna NULL
-    if (T->Llink == NULL && T->Rlink == NULL) {
-        free(T);
-        return NULL;
+// Função recursiva para ajustar a heap após a remoção do maior valor
+void ajusta_MaxHeap_Pos_Remocao(int posicaoElemento) {
+    int maior = posicaoElemento;
+    int Llink = 2 * posicaoElemento + 1;  // Índice do filho esquerdo
+    int Rlink = 2 * posicaoElemento + 2;  // Índice do filho direito
+
+    // Verifica se o filho esquerdo é maior que o elemento atual
+    if (Llink < tam && heap[Llink] > heap[maior]) {
+        maior = Llink;
     }
 
-    // Troca a raiz com o maior filho e ajusta o MaxHeap
-    if (T->Llink != NULL && T->Rlink != NULL) {
-        if (T->Llink->info > T->Rlink->info) {
-            swap(T->info, T->Llink->info);
-            T->Llink = remove_MaxHeap(T->Llink);
-        } else {
-            swap(T->info, T->Rlink->info);
-            T->Rlink = remove_MaxHeap(T->Rlink);
-        }
-    } else if (T->Llink != NULL) {
-        swap(T->info, T->Llink->info);
-        T->Llink = remove_MaxHeap(T->Llink);
-    } else {
-        swap(T->info, T->Rlink->info);
-        T->Rlink = remove_MaxHeap(T->Rlink);
+    // Verifica se o filho direito é maior que o maior elemento
+    if (Rlink < tam && heap[Rlink] > heap[maior]) {
+        maior = Rlink;
     }
 
-    return T;
+    // Se o maior não for o elemento atual, troca e chama recursivamente.
+    if (maior != posicaoElemento) {
+        swap(heap[posicaoElemento], heap[maior]);
+        ajusta_MaxHeap_Pos_Remocao(maior);
+    }
 }
 
-// Função para imprimir o MaxHeap em níveis, facilitando a visualização em árvore
-// Parâmetro:
-// - 'T': ponteiro para o nó raiz do MaxHeap
-void imprime_em_niveis(TreeNo *T) {
-    if (T == NULL) return;
+// Função para inserir um valor na MaxHeap
+void insereMaxHeap(int value) {
+    if (tam >= MAX_tam) {  // Verifica se a heap atingiu seu tam máximo
+        cout << "Heap está cheio!" << endl;
+        return;
+    }
 
-    queue<TreeNo*> q;
-    q.push(T);
-    
+    heap[tam] = value;  // Insere o valor no final da heap
+    ajusta_MaxHeap(tam);  // Ajusta a heap para manter a propriedade de MaxHeap
+    tam++;  // Incrementa o tam da heap
+}
+
+// Função para retornar o maior valor da MaxHeap (raiz) e removê-lo
+int maiorValorMaxHeap() {
+    if (tam == 0) {  // Verifica se a heap está vazia
+        cout << "Heap vazio!" << endl;
+        return -1;
+    }
+
+    int max = heap[0];  // O maior valor é sempre a raiz
+    heap[0] = heap[tam - 1];  // Substitui a raiz pelo último elemento
+    tam--;  // Diminui o tam da heap
+    ajusta_MaxHeap_Pos_Remocao(0);  // Ajusta a heap após a remoção do maior valor
+
+    return max;
+}
+
+// Função para imprimir a heap por níveis (como uma árvore binária)
+void imprimeArvorePorNiveis() {
     int nivel = 0;
-    while (!q.empty()) {
-        int n = q.size();
+    int inicio = 0;
+    while (inicio < tam) {
+        int fim = min((int)pow(2, nivel) - 1 + inicio, tam - 1);  // Determina os limites do nível
         cout << "Nivel " << nivel << ": ";
-        for (int i = 0; i < n; i++) {
-            TreeNo *temp = q.front();
-            q.pop();
-            cout << temp->info << " ";
-            if (temp->Llink != NULL) q.push(temp->Llink);
-            if (temp->Rlink != NULL) q.push(temp->Rlink);
+        for (int i = inicio; i <= fim; i++) {
+            cout << heap[i] << " ";  // Imprime os elementos no nível atual
         }
         cout << endl;
-        nivel++;
+        inicio = fim + 1;
+        nivel++;  // Avança para o próximo nível
     }
 }
 
-// Função principal
+// Função para exibir a heap atual por níveis
+void atualizaMaxHeap() {
+    cout << endl << "MaxHeap atual (por niveis)" << endl;
+    imprimeArvorePorNiveis();  // Exibe a heap organizada por níveis
+    cout << endl;
+}
+
 int main() {
-    TreeNo *heap = ini_MaxHeap(heap);  // Inicializa o MaxHeap vazio
+    cout << arte_ascii1 << " " << endl;  // Exibe a arte ASCII
+    cout << endl;
 
-    // Dados dos estudantes para criação do conjunto de dados de teste
-    int diaLarson = 12;  // Dia de aniversário de Eduardo
-    int mesLarson = 13;  // Mês de aniversário de Eduardo (12 + 1)
-    int diaThiago = 19;  // Dia de aniversário de Thiago
-    int mesThiago = 2;   // Mês de aniversário de Thiago
+    cout << "Teste: 8 : 31 : 19 : 14 : 73 : 35" << endl;
+    cout << endl;
 
-    // Soma dos dias e meses dos aniversários dos estudantes
-    int somaDia = diaLarson + diaThiago;
-    int somaMes = mesLarson + mesThiago;
+    // Soma dos dias de aniversário: 12 + 19 = 31
+    // Soma dos meses de aniversário: 12 + 2 = 14
 
-    // Conjunto de dados para inserção no MaxHeap
-    int data[] = {8, diaLarson, mesLarson, diaThiago, mesThiago, 73, 35};
-
-    // Insere cada elemento do conjunto de dados no MaxHeap
-    for (int i = 0; i < 7; i++) {
-        heap = insere_MaxHeap(heap, data[i]);
+    // Vetor com os valores a serem inseridos
+    int valores[] = {8, 31, 19, 14, 73, 35};
+    
+    // Laço para inserir os valores na heap e atualizar
+    for (int i = 0; i < sizeof(valores) / sizeof(valores[0]); i++) {
+        insereMaxHeap(valores[i]);
+        atualizaMaxHeap();
     }
 
-    cout << arte_ascii1 << " " << endl;
-
-    // Imprime o MaxHeap em ordem decrescente
-    cout << "MaxHeap em ordem decrescente (pre-ordem): ";
-    imprime_MaxHeap(heap);
+    cout << "Maior valor da Heap: " << maiorValorMaxHeap() << endl;
     cout << endl;
 
-    // Exibe o MaxHeap em níveis
-    cout << endl << "MaxHeap em niveis:" << endl;
-    imprime_em_niveis(heap);
-    cout << endl;
-
-    // Remove o maior elemento (raiz) do MaxHeap e imprime o resultado
-    heap = remove_MaxHeap(heap);
-    cout << "Apos remover o maior elemento (pre-ordem): ";
-    imprime_MaxHeap(heap);
-    cout << endl;
-
-    cout << endl << "MaxHeap apos remocao em niveis:" << endl;
-    imprime_em_niveis(heap);
-    cout << endl;
-
-    // Exibe as somas dos dias e meses dos aniversários
-    cout << "Soma dos dias do aniversario da dupla: " << somaDia << endl;
-    cout << "Soma dos meses do aniversario da dupla: " << somaMes << endl;
+    // Exibe a MaxHeap depois de excluir o maior valor
+    cout << "MaxHeap depois de excluir o maior valor (por niveis): " << endl;
+    imprimeArvorePorNiveis();
 
     return 0;
 }
+
